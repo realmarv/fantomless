@@ -2098,6 +2098,45 @@ match!
 """
 
 [<Test>]
+let ``Vanity alignment when using operator <|`` () =
+    formatSourceString
+        false
+        """
+[<AutoOpen>]
+module KeyExtensions =
+    type PerCommitmentPoint with
+        member this.DerivePaymentPrivKey
+            (paymentBasepointSecret: PaymentBasepointSecret)
+            (channelType: ChannelType)
+            (isRemoteKey: bool)
+            : PaymentPrivKey =
+            PaymentPrivKey
+            <| match channelType, isRemoteKey with
+               | ChannelType.StaticRemoteKey, true ->
+                   paymentBasepointSecret.RawKey()
+               | _ -> this.DerivePrivKey(paymentBasepointSecret.RawKey())
+"""
+        config
+    |> prepend newline
+    |> should
+        equal
+        """
+[<AutoOpen>]
+module KeyExtensions =
+    type PerCommitmentPoint with
+
+        member this.DerivePaymentPrivKey
+            (paymentBasepointSecret: PaymentBasepointSecret)
+            (channelType: ChannelType)
+            (isRemoteKey: bool)
+            : PaymentPrivKey =
+            PaymentPrivKey
+            <| match channelType, isRemoteKey with
+                | ChannelType.StaticRemoteKey, true -> paymentBasepointSecret.RawKey()
+                | _ -> this.DerivePrivKey(paymentBasepointSecret.RawKey())
+"""
+
+[<Test>]
 let ``single line named fields in a pattern matching should have space surrounding the '=', 1877`` () =
     formatSourceString
         false
